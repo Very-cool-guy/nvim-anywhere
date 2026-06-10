@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-# vim-anywhere - use Vim whenever, wherever
-# Author: Chris Knadler
-# Homepage: https://www.github.com/cknadler/vim-anywhere
+# nvim-anywhere - use nvim whenever, wherever
+# Author: Chris Knadler and very-cool-guy
+# Homepage: https://www.github.com/Very-cool-guy/nvim-anywhere
 #
-# Open a temporary file with Vim. Once Vim is closed, copy the contents of that
+# Open a temporary file with nvim. Once nvim is closed, copy the contents of that
 # file to the system clipboard.
 
 set -e
@@ -37,18 +37,18 @@ done
 # run
 ###
 
-AW_PATH=$HOME/.vim-anywhere
+AW_PATH=$HOME/.nvim-anywhere
 # $TMPDIR is per-user on macOS; fall back to /tmp on Linux
-TMPFILE_DIR="${TMPDIR:-/tmp}/vim-anywhere"
+TMPFILE_DIR="${TMPDIR:-/tmp}/nvim-anywhere"
 TMPFILE=$TMPFILE_DIR/doc-$(date +"%y%m%d%H%M%S")
-VIM_OPTS=(--nofork)
+NVIM_OPTS=(+star)
 
 # Use ~/.gvimrc.min or ~/.vimrc.min if one exists
-VIMRC_PATH=("$HOME/.gvimrc.min" "$HOME/.vimrc.min")
+NVIMRC_PATH=("$HOME/.config/nvim/init.vim" "$HOME/.config/nvim/init.lua")
 
-for vimrc_path in "${VIMRC_PATH[@]}"; do
-    if [ -f "$vimrc_path" ]; then
-        VIM_OPTS+=(-u "$vimrc_path")
+for nvimrc_path in "${NVIMRC_PATH[@]}"; do
+    if [ -f "$nvimrc_path" ]; then
+        NVIM_OPTS+=(-u "$nvimrc_path")
         break
     fi
 done
@@ -60,23 +60,25 @@ touch "$TMPFILE"
 # Linux
 if [[ $OSTYPE == "linux-gnu" ]]; then
   chmod o-r "$TMPFILE" # Make file only readable by you
-  gvim "${VIM_OPTS[@]}" "$TMPFILE"
+  emu_path=$(cat "$AW_PATH/.path")
+  "$emu_path" -e bash -c "nvim ${NVIM_OPTS[@]} $TMPFILE"
   xclip -selection clipboard < "$TMPFILE"
 
 # OSX
 elif [[ $OSTYPE == "darwin"* ]]; then
   # if there is no path file, it must have been deleted or the installer failed
   require_file_exists "$AW_PATH/.path" \
-    "Please reinstall vim-anywhere."
+    "Please reinstall nvim-anywhere."
 
   app=$(osascript "$AW_PATH/script/current_app.scpt")
-  mvim_path=$(cat "$AW_PATH/.path")
+  nvim_path=$(head -n 1 "$AW_PATH/.path")
+  emu_path=$(tail -n 1 "$AW_PATH/.path")
 
-  require_file_exists "$mvim_path" \
-    "mvim must have been moved or uninstalled.\nPlease make sure it is" \
-    "available in your path and then reinstall vim-anywhere."
+  require_file_exists "$nvim_path" \
+    "nvim must have been moved or uninstalled.\nPlease make sure it is" \
+    "available in your path and then reinstall nvim-anywhere."
 
-  "$mvim_path" "${VIM_OPTS[@]}" "$TMPFILE"
+  "$emu_path" -e bash -c "$nvim_path ${NVIM_OPTS[@]} $TMPFILE"
 
   # LANG is set explicitly for UTF-8 clipboard compatibility; remove if it causes
   # issues with non-English locales.
