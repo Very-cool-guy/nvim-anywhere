@@ -96,7 +96,7 @@ if [[ $OSTYPE == "linux-gnu" ]]; then
   binding="<CTRL><ALT>v"
   action="$AW_PATH/bin/run"
 
-  read -p "Where's the position of your terminal emulator binary?" -r line && printf "%s\n" "$line" > "$AW_PATH/.path"
+  read -p "Where's the position of your terminal emulator binary?" -r line < /dev/tty && printf "%s\n" "$line" > "$AW_PATH/.path"
   if [[ ! -e "$line" ]]; then
     echo "this does not exist"
     exit 1
@@ -127,7 +127,7 @@ if [[ $OSTYPE == "linux-gnu" ]]; then
 elif [[ $OSTYPE == "darwin"* ]]; then
   # store the absolute path to the mvim executable
   which nvim > "$AW_PATH/.path"
-  read -p "Where's the position of your terminal emulator binary?" -r line && printf "%s\n" "$line" >> "$AW_PATH/.path"
+  read -p "Where's the position of your terminal emulator binary?" -r line < /dev/tty && printf "%s\n" "$line" >> "$AW_PATH/.path"
   if [[ ! -e "$line" ]]; then
     echo "this does not exist"
     exit 1
